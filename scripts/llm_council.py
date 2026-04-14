@@ -24,10 +24,10 @@ DEFAULT_TIMEOUT_SEC = 180
 DEFAULT_UI_KEEPALIVE_SEC = 20 * 60
 DEFAULT_UI_SESSION_TTL_SEC = 30 * 60
 
-CODEX_MODEL = "gpt-5.2-codex"
+CODEX_MODEL = ""
 CODEX_REASONING = "xhigh"
-CLAUDE_MODEL = "opus"
-GEMINI_MODEL = "gemini-3-pro-preview"
+CLAUDE_MODEL = ""
+GEMINI_MODEL = ""
 
 @dataclass
 class AgentConfig:
@@ -121,9 +121,19 @@ def extract_agent_response(config: AgentConfig, raw: str) -> str:
         return raw
 
     if kind == "claude":
+        envelope = extract_json(raw)
+        if isinstance(envelope, dict):
+            result = envelope.get("result")
+            if isinstance(result, str):
+                return result
+            msg = envelope.get("message")
+            if isinstance(msg, dict):
+                content_list = msg.get("content")
+                if isinstance(content_list, list):
+                    for block in content_list:
+                        if isinstance(block, dict) and isinstance(block.get("text"), str):
+                            return block["text"]
         events = extract_json_array(raw)
-        if events is None:
-            return raw
         if isinstance(events, list):
             for item in reversed(events):
                 if isinstance(item, dict) and item.get("type") == "result":
@@ -222,11 +232,10 @@ def _build_command_and_input(config: AgentConfig, prompt: str) -> Tuple[List[str
             "exec",
             "--json",
             "--skip-git-repo-check",
-            "-m",
-            model,
-            "-c",
-            f"model_reasoning_effort={reasoning}",
         ]
+        if model:
+            args.extend(["-m", model])
+        args.extend(["-c", f"model_reasoning_effort={reasoning}"])
         args.extend(config.extra_args)
         args.append(prompt)
         return (
@@ -250,8 +259,10 @@ def _build_command_and_input(config: AgentConfig, prompt: str) -> Tuple[List[str
             "claude",
             "--output-format",
             "json",
-            "--model",
-            model,
+        ]
+        if model:
+            args.extend(["--model", model])
+        args.extend([
             "--max-turns",
             "1",
             "--no-session-persistence",
@@ -259,7 +270,7 @@ def _build_command_and_input(config: AgentConfig, prompt: str) -> Tuple[List[str
             "--tools",
             "",
             "--disable-slash-commands",
-        ]
+        ])
         args.extend(config.extra_args)
         args.extend(["-p", prompt])
         return (

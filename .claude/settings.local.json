@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tr -d '\\\\r')",
+      "Bash(mv /tmp/setup_fixed.sh /mnt/d/Shared/GitHub/llm-council/setup.sh)",
+      "Bash(chmod +x /mnt/d/Shared/GitHub/llm-council/setup.sh)"
+    ]
+  }
+}

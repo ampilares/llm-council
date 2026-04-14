@@ -1,0 +1,3 @@
+{
+  "task": "I want a plan to create a leads enricher that takes a csv file with names and corresponding addresses and finds their contact details if not yet present in the csv file such as their phone number, mobile number, email, and socials (linkedin, facebook, instagram). I need these contact details to be verified and if needed, includes a confidence score."
+}
